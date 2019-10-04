@@ -2,7 +2,7 @@
 
 namespace Models\Admin;
 
-use Illuminate\Database\Eloquent\Model;
+use Models\Model;
 
 class Admin extends Model
 {

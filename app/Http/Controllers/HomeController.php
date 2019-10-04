@@ -14,7 +14,7 @@ class HomeController extends Controller
      */
     public function __construct()
     {
-        //$this->middleware('auth');
+        $this->middleware('auth');
     }
 
     /**
@@ -24,8 +24,15 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $result = Admin\Admin::where('roleid', 1)->take(3)->get();
-        print_r($result);
+        $result = Admin\Admin::insertGetId([
+            'username' => 'test',
+            'password' => 'test',
+            'mobile'   => '12121212122',
+            'login_ip' => 'ips',
+        ]);
+        
+        $value = session('key');
+
         return view('home');
     }
 }
