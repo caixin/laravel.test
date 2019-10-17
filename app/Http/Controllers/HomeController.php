@@ -14,25 +14,16 @@ class HomeController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('auth');
+        //
     }
 
     /**
-     * Show the application dashboard.
+     * 首頁儀錶板
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
     public function index()
     {
-        $result = Admin\Admin::insertGetId([
-            'username' => 'test',
-            'password' => 'test',
-            'mobile'   => '12121212122',
-            'login_ip' => 'ips',
-        ]);
-        
-        $value = session('key');
-
         return view('home');
     }
 }

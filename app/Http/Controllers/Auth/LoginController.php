@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use Models\Admin;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use App\Http\Requests\AdminRequest;
 
 class LoginController extends Controller
 {
@@ -23,11 +23,11 @@ class LoginController extends Controller
     use AuthenticatesUsers;
 
     /**
-     * Where to redirect users after login.
+     * 登入後導向的位置
      *
      * @var string
      */
-    protected $redirectTo = '/home';
+    protected $redirectTo = '/';
 
     /**
      * Create a new controller instance.
@@ -39,25 +39,8 @@ class LoginController extends Controller
         $this->middleware('guest')->except('logout');
     }
 
-    public function index()
-    {
-        return view('auth/login');
-    }
-
-    public function login(AdminRequest $request)
-    {
-        $request->validated();
-
-        $loginSuccess = Admin\Admin::where([
-            'mobile'   => $request->input('mobile'),
-            'password' => strtoupper(md5($request->input('password')))
-        ])->count();
-
-        echo $loginSuccess;
-    }
-
     /**
-     * The user has been authenticated.
+     * 通過驗證後的動作
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  mixed  $user
@@ -65,12 +48,54 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        // Send required response here
+        //更新登入數次及時間
+        $user->login_time = date('Y-m-d H:i:s');
+        $user->login_count++;
+        $user->token = session('_token');
+        $user->save();
+        //登入log
+        Admin\AdminLoginLog::create([
+            'adminid'     => $user->id,
+            'ip'          => $request->getClientIp(),
+            'status'      => 1,
+            'create_time' => date('Y-m-d H:i:s'),
+            'create_by'   => $user->username,
+        ]);
+        //重要資訊寫入Session
+        session([
+            'id'       => $user->id,
+            'username' => $user->username,
+            'roleid'   => $user->roleid,
+            'per_page' => 20,
+        ]);
+        //轉跳
+        if (session('refer')) {
+            $refer = session('refer');
+            session(['refer'=>null]);
+            return redirect($refer);
+        } else {
+            return redirect('home');
+        }
     }
 
-    public function logout()
+    /**
+     * 定義帳號欄位
+     *
+     * @return string
+     */
+    public function username()
     {
-        Auth::logout();
-        return redirect('/admin/login');
+        return 'mobile';
+    }
+
+    /**
+     * 登出後動作
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return mixed
+     */
+    protected function loggedOut(Request $request)
+    {
+        return redirect('login');
     }
 }

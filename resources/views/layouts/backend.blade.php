@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', '后台管理系统') }}</title> 
+    <title>{{ config('app.name', '后台管理系统') }}</title>
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
     <!-- Bootstrap 3.3.7 -->
@@ -159,7 +159,7 @@
                     </a>
                     <div class="col-xs-5" style="margin:8px 0 0 5px;">
                         <select id="global_operator" class="form-control" multiple="multiple" style="height:20px;">
-                            @foreach ($this->allow_operator as $key => $val)
+                            @foreach ($allow_operator as $key => $val)
                                 <option value="{{ $key }}" {{ Session::get('show_operator') && in_array($key, Session::get('show_operator')) ? 'selected':'' }}>{{ $val }}</option>
                             @endforeach
                         </select>
@@ -168,7 +168,7 @@
                         <ul class="nav navbar-nav">
                             <!-- Messages: style can be found in dropdown.less-->
                             <li class="dropdown messages-menu">
-                                <a href="{{ Route('online') }}" class="dropdown-toggle">
+                                <a href="#" class="dropdown-toggle">
                                     <i class="fa">在线会员</i>
                                     <span id="top_online" class="label label-success" style="display:none;">0</span>
                                 </a>
@@ -228,7 +228,7 @@
                     });
                     $.ajax({
                         type: "POST",
-                        url: "{{ route('global_operator') }}",
+                        url: "{{ url('global_operator') }}",
                         data: {
                             operator: global_operator
                         },
@@ -245,7 +245,7 @@
                     var vid = document.getElementById("player_audio");
                     $.ajax({
                         type: "POST",
-                        url: "{{ route('getTopMessage') }}",
+                        url: "{{ url('getTopMessage') }}",
                         data: {},
                         cache: false,
                         dataType: "json",
@@ -275,9 +275,9 @@
                 <section class="sidebar">
                     <!-- sidebar menu: : style can be found in sidebar.less -->
                     <ul class="sidebar-menu" data-widget="tree">
-                        @foreach ($this->navList as $row)
-                            @if ($this->session->userdata('roleid') == 1 || in_array($row['url'], $this->allow_url)) : ?>
-                                <li class="treeview {{ in_array($this->cur_url, $row['sub_urls']) ? 'active' : '' }}">
+                        @foreach ($navList as $row)
+                            @if (session('roleid') == 1 || in_array($row['route'], $allow_url))
+                                <li class="treeview {{ in_array($route, $row['subNavs']) ? 'active' : '' }}">
                                     <a href="#">
                                         <i class="fa {{ $row['icon'] }}"></i> <span>{{ $row['name'] }}</span>
                                         <span class="pull-right-container">
@@ -286,9 +286,9 @@
                                     </a>
                                     <ul class="treeview-menu">
                                         @foreach ($row['sub'] as $arr)
-                                            @if (Session::get('roleid') == 1 || in_array($arr['url'], $this->allow_url))
-                                                <li class="{{ $this->cur_url == $arr['url'] ? 'active' : '' }}">
-                                                    <a href="{{ url($arr['url']) }}"><i class="fa fa-circle-o"></i> {{ $arr['name'] }}</a>
+                                            @if (Session::get('roleid') == 1 || in_array($arr['route'], $allow_url))
+                                                <li class="{{ $route == $arr['route'] ? 'active' : '' }}">
+                                                    <a href="{{ route($arr['route']) }}"><i class="fa fa-circle-o"></i> {{ $arr['name'] }}</a>
                                                 </li>
                                             @endif
                                         @endforeach
@@ -307,10 +307,10 @@
             <div class="content-wrapper">
                 <!-- Content Header (Page header) -->
                 <section class="content-header">
-                    <h1 style="font-size:20px;">{{ $this->title }}</h1>
+                    <h1 style="font-size:20px;">{{ $title }}</h1>
                     <ol class="breadcrumb">
-                        <li><a href="{{ url() }}"><i class="fa fa-dashboard"></i> 首页</a></li>
-                        @foreach ($this->breadcrumb as $row)
+                        <li><a href="{{ url('') }}"><i class="fa fa-dashboard"></i> 首页</a></li>
+                        @foreach ($breadcrumb as $row)
                             <li><a href="{{ url($row['url']) }}">{{ $row['name'] }}</a></li>
                         @endforeach
                     </ol>
@@ -325,7 +325,7 @@
             <!-- /.content-wrapper -->
             <footer class="main-footer">
                 <div class="pull-right hidden-xs">
-                    <b>Version:</b> {{ $this->version }}
+                    <b>Version:</b> {{ $version }}
                 </div>
             </footer>
             <audio id="player_audio" controls preload hidden>
@@ -337,10 +337,10 @@
             <div style="background:#ffffff;">
                 <!-- Content Header (Page header) -->
                 <section class="content-header">
-                    <h1>{{ $this->title }}</h1>
+                    <h1>{{ $title }}</h1>
                     <ol class="breadcrumb">
                         <li><a><i class="fa fa-dashboard"></i> 首页</a></li>
-                        @foreach ($this->breadcrumb as $row)
+                        @foreach ($breadcrumb as $row)
                             <li><a>{{ $row['name'] }}</a></li>
                         @endforeach
                     </ol>

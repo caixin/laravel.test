@@ -43,7 +43,7 @@
             <form method="POST" action="{{ url('login') }}">
                 @csrf
                 <div class="form-group has-feedback">
-                    <input type="text" class="form-control" name="mobile" id="mobile" placeholder="帐号">
+                    <input type="text" class="form-control" name="mobile" id="mobile" placeholder="手机号码">
                     <span class="glyphicon glyphicon-envelope form-control-feedback"></span>
                 </div>
                 <div class="form-group has-feedback">
@@ -60,10 +60,11 @@
             </form>
             <!-- /.social-auth-links -->
         </div>
-        @if ($errors->any())
+        @if ($errors->any() || session('message'))
             <div class="alert alert-danger alert-dismissible" style="margin-top:10px;">
                 <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
                 <h4><i class="icon fa fa-ban"></i> 错误!</h4>
+                {{ session('message') }}
                 @foreach ($errors->all() as $error)
                     {{ $error  }} <br>
                 @endforeach
