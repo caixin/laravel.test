@@ -59,4 +59,18 @@ class AdminRepository extends AbstractRepository
 
         return $this;
     }
+
+    /**
+     * For 操作日誌用
+     *
+     * @var array
+     */
+    public static $columnList = [
+        'username' => '用户名称',
+        'password' => '用户密码',
+        'mobile'   => '手机号码',
+        'roleid'   => '角色群组',
+        'status'   => '状态',
+        'is_agent' => '是否为代理',
+    ];
 }

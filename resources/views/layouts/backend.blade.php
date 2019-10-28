@@ -1,3 +1,4 @@
+@inject('Backend', 'App\Presenters\Layouts\BackendPresenter')
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -327,6 +328,7 @@
                 <div class="pull-right hidden-xs">
                     <b>Version:</b> {{ $version }}
                 </div>
+                <strong>Page rendered in {{ $Backend->elapsedTime() }} second and used {{ $Backend->ramUsage() }} memory.</strong>
             </footer>
             <audio id="player_audio" controls preload hidden>
                 <source src="{{ asset('prompt.mp3') }}" type="audio/mpeg">

@@ -2,8 +2,10 @@
 
 namespace App\Repositories;
 
+use Route;
 use Models\Model;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 abstract class AbstractRepository
 {
@@ -20,6 +22,7 @@ abstract class AbstractRepository
     protected $_group    = [];
     protected $_having   = [];
     protected $_limit    = [];
+    public $is_action_log = true;
 
     public function __call($methods, $arguments)
     {
@@ -30,6 +33,7 @@ abstract class AbstractRepository
     {
         $this->entity = $entity;
         $this->db     = $entity;
+        DB::connection()->enableQueryLog();
     }
 
     public function getEntity()
@@ -126,7 +130,7 @@ abstract class AbstractRepository
 
         if (!empty($this->_join)) {
             foreach ($this->_join as $join) {
-                $this->db->join($join[0], $join[1], $join[2]);
+                $this->db = $this->db->$join();
             }
         }
 
@@ -191,18 +195,25 @@ abstract class AbstractRepository
         return $result;
     }
 
+    /**
+     * 取得最後執行的SQL語句
+     *
+     * @return string
+     */
     public function last_query()
     {
-        $queries = $this->entity->getQueryLog();
-        return end($queries);
+        $lastQuery = end(DB::getQueryLog());
+        $stringSQL = str_replace('?', '%s', $lastQuery['query']);
+        return sprintf($stringSQL, ...$lastQuery['bindings']);
     }
 
     public function get_compiled_select()
     {
         $this->_do_action();
-        $sql = $this->entity->tosql();
+        $stringSQL = str_replace('?', '%s', $this->db->toSql());
+        $stringSQL = sprintf($stringSQL, ...$this->db->getBindings());
         $this->reset();
-        return $sql;
+        return $stringSQL;
     }
 
     public function save($data, $id=0)
@@ -262,17 +273,20 @@ abstract class AbstractRepository
 
         $create = $this->entity->create($data);
         //寫入操作日誌
-        /*
         if ($this->is_action_log) {
-            $sql_str = $this->db->insert_string($this->_table_name, $data);
-            $message = $this->title . '(' . $this->getActionString($data) . ')';
-            $this->admin_action_log_db->insert([
-                'sql_str' => $sql_str,
-                'message' => $message,
-                'status'  => $id > 0 ? 1 : 0,
+            $message = view()->shared('title') . '(' . $this->getActionString($data) . ')';
+            DB::table('admin_action_log')->insert([
+                'adminid'     => session('id'),
+                'route'       => Route::currentRouteName(),
+                'sql_str'     => $this->last_query(),
+                'message'     => $message,
+                'ip'          => Request()->getClientIp(),
+                'status'      => $create->id > 0 ? 1 : 0,
+                'create_time' => date('Y-m-d H:i:s'),
+                'create_by'   => session('username'),
             ]);
         }
-        */
+
         return $create->id;
     }
 
@@ -298,30 +312,31 @@ abstract class AbstractRepository
         if (Schema::hasColumn($this->entity->getTable(), 'update_by')) {
             $data['update_by'] = session('username');
         }
-        
+
         if ($id == 0) {
             $this->_do_action();
-            $this->db->update($data);
+            $update = $this->db->update($data);
             $this->reset();
         } else {
-            //$origin = $this->entity->find($id);
-            $this->entity->find($id)->update($data);
+            $update = $this->entity->find($id)->update($data);
         }
         //清除快取
         //$this->cache->redis->delete($this->entity->table()."-$id");
 
         //寫入操作日誌
-        /*
         if ($this->is_action_log) {
-            $sql_str = $this->db->update_string($this->_table_name, $row, [$this->_key => $row[$this->_key]]);
-            $message = $this->title . '(' . $this->getActionString($row, $this->_array_diff($row, $origin)) . ')';
-            $this->admin_action_log_db->insert([
-                'sql_str' => $sql_str,
-                'message' => $message,
-                'status' => $num > 0 ? 1 : 0,
+            $message = view()->shared('title') . '(' . $this->getActionString($data) . ')';
+            DB::table('admin_action_log')->insert([
+                'adminid'     => session('id'),
+                'route'       => Route::currentRouteName(),
+                'sql_str'     => $this->last_query(),
+                'message'     => $message,
+                'ip'          => Request()->getClientIp(),
+                'status'      => $update > 0 ? 1 : 0,
+                'create_time' => date('Y-m-d H:i:s'),
+                'create_by'   => session('username'),
             ]);
         }
-        */
     }
 
     public function update_batch($data)
@@ -371,4 +386,56 @@ abstract class AbstractRepository
     {
         $this->entity->truncate();
     }
+
+    /**
+     * 組成操作日誌字串
+     */
+    public function getActionString($data, $highlight = [])
+    {
+        $str = [];
+        foreach ($data as $key => $val) {
+            //判斷有無欄位
+            if (isset(static::$columnList[$key])) {
+                //判斷欄位有無靜態陣列
+                if (isset($this->entity::$field->$val)) {
+                    $val = $this->entity::$field->$val;
+                }
+
+                if (isset($highlight[$key])) {
+                    $str[] = '<font color="blue">' . static::$columnList[$key] . "=$val</font>";
+                } else {
+                    $str[] = static::$columnList[$key] . "=$val";
+                }
+            }
+        }
+
+        return implode(';', $str);
+    }
+
+    /**
+     * 組成操作日誌字串(多筆)
+     */
+    public function getActionString_batch($result)
+    {
+        $return = [];
+        foreach ($result as $data) {
+            $str = [];
+            foreach ($data as $key => $val) {
+                //判斷有無欄位
+                if (isset(static::$columnList[$key])) {
+                    //判斷欄位有無靜態陣列
+                    if (isset(static::${"{$key}List"}[$val])) {
+                        $val = static::${"{$key}List"}[$val];
+                    }
+
+                    $str[] = static::$columnList[$key] . "=$val";
+                }
+            }
+            $return[] = implode(';', $str);
+        }
+
+        return implode('<br>', $return);
+    }
+
+    public static $columnList = [];
 }

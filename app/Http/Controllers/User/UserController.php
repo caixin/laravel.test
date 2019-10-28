@@ -5,8 +5,7 @@ namespace App\Http\Controllers\User;
 use View;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Http\Requests\User\UserCreateRequest;
-use App\Http\Requests\User\UserFormRequest;
+use App\Http\Requests\User\UserForm;
 use App\Services\User\UserService;
 
 class UserController extends Controller
@@ -34,7 +33,7 @@ class UserController extends Controller
         return view('user.create', $this->userService->create($request->input()));
     }
 
-    public function store(UserCreateRequest $request)
+    public function store(UserForm $request)
     {
         $this->userService->store($request->post());
 
@@ -54,7 +53,7 @@ class UserController extends Controller
         return view('user.edit', $this->userService->show($id));
     }
 
-    public function update(UserFormRequest $request, $id)
+    public function update(UserForm $request, $id)
     {
         $this->userService->update($request->post(), $id);
 

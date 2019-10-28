@@ -87,7 +87,7 @@
                     </td>
                     <td>
                     @if (session('roleid') == 1 || in_array("$controller.edit", $allow_url))
-                        <button type="button" class="btn btn-primary" style="margin-bottom: 3px;" onclick="edit({{ $row['id'] }})">编辑</button>
+                        <button type="button" class="btn btn-primary" onclick="edit({{ $row['id'] }})">编辑</button>
                     @endif
                     @if (session('roleid') == 1 || in_array("$controller.delete", $allow_url))
                         <button type="button" class="btn btn-primary" onclick="delete_row({{ $row['id'] }})">删除</button>

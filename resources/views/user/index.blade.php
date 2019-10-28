@@ -5,7 +5,7 @@
 {!! lists_message() !!}
 <div class="box">
     <div class="box-header">
-        <form method="POST" action="{{ route($controller.search) }}">
+        <form method="POST" action="{{ route("$controller.search") }}">
             @csrf
             <input type="hidden" name="sidebar" value="{{ $search['sidebar'] ?? '' }}">
             <div class="col-xs-1" style="width:auto;">

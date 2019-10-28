@@ -225,3 +225,18 @@ if (! function_exists('randPwd')) {
         return $password;
     }
 }
+
+if (! function_exists('bytes_to_kbmbgb')) {
+    function bytes_to_kbmbgb($filesize)
+    {
+        if ($filesize<1048576) {
+            return number_format($filesize/1024, 1) . " KB";
+        }
+        if ($filesize>=1048576 && $filesize<1073741824) {
+            return number_format($filesize/1048576, 1) . " MB";
+        }
+        if ($filesize>=1073741824) {
+            return number_format($filesize/1073741824, 1) . " GB";
+        }
+    }
+}

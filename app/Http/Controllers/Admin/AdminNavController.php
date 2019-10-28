@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use View;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Http\Requests\Admin\AdminNavFormRequest;
+use App\Http\Requests\Admin\AdminNavForm;
 use App\Services\Admin\AdminNavService;
 
 class AdminNavController extends Controller
@@ -33,7 +33,7 @@ class AdminNavController extends Controller
         return view('admin_nav.create', $this->adminNavService->create($request->input()));
     }
 
-    public function store(AdminNavFormRequest $request)
+    public function store(AdminNavForm $request)
     {
         $this->adminNavService->store($request->post());
 
@@ -47,7 +47,7 @@ class AdminNavController extends Controller
         return view('admin_nav.edit', $this->adminNavService->show($id));
     }
 
-    public function update(AdminNavFormRequest $request, $id)
+    public function update(AdminNavForm $request, $id)
     {
         $this->adminNavService->update($request->post(), $id);
 

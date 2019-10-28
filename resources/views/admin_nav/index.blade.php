@@ -28,7 +28,6 @@
             <thead>
                 <tr>
                     <th>编号</th>
-                    <th>父ID</th>
                     <th>导航名称</th>
                     <th>PATH</th>
                     <th>主路由</th>
@@ -48,7 +47,6 @@
                 @foreach ($result as $row)
                     <tr>
                         <td>{{ $row['id'] }}</td>
-                        <td>{{ $row['pid'] }}</td>
                         <td style="color:{{ $AdminNav::PREFIX_COLOR[$row['prefix']] }}">{{ $row['prefix'] . $row['name'] }}</td>
                         <td>{{ $row['path'] }}</td>
                         <td>{{ $row['route'] }}</td>
@@ -73,7 +71,7 @@
                         </td>
                         <td>
                         @if (session('roleid') == 1 || in_array("$controller.edit", $allow_url))
-                            <button type="button" class="btn btn-primary" style="margin-bottom: 3px;" onclick="edit({{ $row['id'] }})">编辑</button>
+                            <button type="button" class="btn btn-primary" onclick="edit({{ $row['id'] }})">编辑</button>
                         @endif
                         @if (session('roleid') == 1 || in_array("$controller.delete", $allow_url))
                             <button type="button" class="btn btn-primary" onclick="delete_row({{ $row['id'] }})">删除</button>

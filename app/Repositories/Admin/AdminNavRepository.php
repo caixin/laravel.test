@@ -61,4 +61,17 @@ class AdminNavRepository extends AbstractRepository
 
         return $this;
     }
+
+    /**
+     * 取得所有導航資料
+     *
+     * @return array
+     */
+    public function allNav()
+    {
+        $where[] = ['status', '=', 1];
+        $where[] = ['route', '<>', ''];
+        $result = $this->where($where)->order(['sort', 'asc'])->result()->toArray();
+        return array_column($result, null, 'id');
+    }
 }

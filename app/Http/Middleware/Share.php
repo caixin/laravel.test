@@ -43,10 +43,7 @@ class Share
         $share['controller'] = $action[0];
 
         //導航列表
-        $where[] = ['status', '=', 1];
-        $where[] = ['route', '<>', ''];
-        $nav = $this->adminNavRepository->where($where)->order(['sort', 'asc'])->result()->toArray();
-        $nav = array_column($nav, null, 'id');
+        $nav = $this->adminNavRepository->allNav();
         $share['allNav'] = $nav;
         //導航路徑
         $routes = [];

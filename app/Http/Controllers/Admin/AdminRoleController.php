@@ -5,21 +5,21 @@ namespace App\Http\Controllers\Admin;
 use View;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Http\Requests\Admin\AdminForm;
-use App\Services\Admin\AdminService;
+use App\Http\Requests\Admin\AdminRoleForm;
+use App\Services\Admin\AdminRoleService;
 
-class AdminController extends Controller
+class AdminRoleController extends Controller
 {
-    protected $adminService;
+    protected $adminRoleService;
 
-    public function __construct(AdminService $adminService)
+    public function __construct(AdminRoleService $adminRoleService)
     {
-        $this->adminService = $adminService;
+        $this->adminRoleService = $adminRoleService;
     }
 
     public function index(Request $request)
     {
-        return view('admin.index', $this->adminService->list($request->input()));
+        return view('admin_role.index', $this->adminRoleService->list($request->input()));
     }
 
     public function search(Request $request)
@@ -30,12 +30,12 @@ class AdminController extends Controller
     public function create(Request $request)
     {
         View::share('sidebar', false);
-        return view('admin.create', $this->adminService->create($request->input()));
+        return view('admin_role.create', $this->adminRoleService->create($request->input()));
     }
 
-    public function store(AdminForm $request)
+    public function store(AdminRoleForm $request)
     {
-        $this->adminService->store($request->post());
+        $this->adminRoleService->store($request->post());
 
         session()->flash('message', '添加成功!');
         return "<script>parent.window.layer.close();parent.location.reload();</script>";
@@ -44,12 +44,12 @@ class AdminController extends Controller
     public function edit($id)
     {
         View::share('sidebar', false);
-        return view('admin.edit', $this->adminService->show($id));
+        return view('admin_role.edit', $this->adminRoleService->show($id));
     }
 
-    public function update(AdminForm $request, $id)
+    public function update(AdminRoleForm $request, $id)
     {
-        $this->adminService->update($request->post(), $id);
+        $this->adminRoleService->update($request->post(), $id);
 
         session()->flash('message', '编辑成功!');
         return "<script>parent.window.layer.close();parent.location.reload();</script>";
@@ -57,13 +57,13 @@ class AdminController extends Controller
 
     public function save(Request $request, $id)
     {
-        $this->adminService->save($request->post(), $id);
+        $this->adminRoleService->save($request->post(), $id);
         return 'done';
     }
 
     public function destroy(Request $request)
     {
-        $this->adminService->destroy($request->input('id'));
+        $this->adminRoleService->destroy($request->input('id'));
         session()->flash('message', '删除成功!');
         return 'done';
     }

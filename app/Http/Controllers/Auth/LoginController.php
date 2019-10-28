@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Models\Admin;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use App\Repositories\Admin\AdminLoginLogRepository;
+use App\Repositories\System\Ip2locationRepository;
 
 class LoginController extends Controller
 {
@@ -29,14 +30,21 @@ class LoginController extends Controller
      */
     protected $redirectTo = '/';
 
+    protected $adminLoginLogRepository;
+    protected $ip2locationRepository;
+
     /**
      * Create a new controller instance.
      *
      * @return void
      */
-    public function __construct()
-    {
+    public function __construct(
+        AdminLoginLogRepository $adminLoginLogRepository,
+        Ip2locationRepository $ip2locationRepository
+    ) {
         $this->middleware('guest')->except('logout');
+        $this->adminLoginLogRepository = $adminLoginLogRepository;
+        $this->ip2locationRepository = $ip2locationRepository;
     }
 
     /**
@@ -53,20 +61,21 @@ class LoginController extends Controller
         $user->login_count++;
         $user->token = session('_token');
         $user->save();
-        //登入log
-        Admin\AdminLoginLog::create([
-            'adminid'     => $user->id,
-            'ip'          => $request->getClientIp(),
-            'status'      => 1,
-            'create_time' => date('Y-m-d H:i:s'),
-            'create_by'   => $user->username,
-        ]);
         //重要資訊寫入Session
         session([
             'id'       => $user->id,
             'username' => $user->username,
             'roleid'   => $user->roleid,
             'per_page' => 20,
+        ]);
+        //登入log
+        $ip = $request->getClientIp();
+        $ip_info = $this->ip2locationRepository->getIpData($ip);
+        $ip_info = $ip_info ?? [];
+        $this->adminLoginLogRepository->create([
+            'adminid'     => $user->id,
+            'ip'          => $ip,
+            'ip_info'     => json_encode($ip_info),
         ]);
         //轉跳
         if (session('refer')) {

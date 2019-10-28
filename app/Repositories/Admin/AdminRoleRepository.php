@@ -12,28 +12,6 @@ class AdminRoleRepository extends AbstractRepository
         parent::__construct($entity);
     }
 
-    private function _preAction($row)
-    {
-        $row['path'] = 0;
-        if ($row['pid'] > 0) {
-            $parent = $this->row($row['pid']);
-            $row['path'] = $parent['path'] . '-' . $row['pid'];
-        }
-        return $row;
-    }
-
-    public function create($row)
-    {
-        $row = $this->_preAction($row);
-        return parent::create($row);
-    }
-
-    public function update($row, $id=0)
-    {
-        $row = $this->_preAction($row);
-        return parent::update($row, $id);
-    }
-
     public function _do_search()
     {
         if (isset($this->_search['name'])) {
@@ -60,4 +38,15 @@ class AdminRoleRepository extends AbstractRepository
         $result = $this->where($where)->result()->toArray();
         return array_column($result, 'name', 'id');
     }
+
+    /**
+     * For 操作日誌用
+     *
+     * @var array
+     */
+    public static $columnList = [
+        'name'           => '角色名称',
+        'allow_operator' => '运营商权限',
+        'allow_nav'      => '导航权限',
+    ];
 }

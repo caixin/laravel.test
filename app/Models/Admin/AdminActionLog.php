@@ -4,17 +4,25 @@ namespace Models\Admin;
 
 use Models\Model;
 
-class AdminLoginLog extends Model
+class AdminActionLog extends Model
 {
     const UPDATED_AT = null;
     
-    protected $table = 'admin_login_log';
+    protected $table = 'admin_action_log';
 
     protected $fillable = [
         'adminid',
+        'route',
+        'message',
+        'sql_str',
         'ip',
-        'ip_info',
+        'status',
         'create_by',
+    ];
+
+    const STATUS = [
+        1 => '成功',
+        0 => '失败',
     ];
 
     public function admin()

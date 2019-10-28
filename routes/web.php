@@ -34,4 +34,10 @@ Route::group(['middleware'=>['auth','Share','Permission']], function () {
     Route::resource('admin_nav', 'Admin\AdminNavController', ['only'=>['index','create','store','edit','update','destroy']]);
     Route::post('admin_nav/search', 'Admin\AdminNavController@search')->name('admin_nav.search');
     Route::post('admin_nav/{admin_nav}/save', 'Admin\AdminNavController@save')->name('admin_nav.save');
+
+    Route::get('admin_login_log', 'Admin\AdminLoginLogController@index')->name('admin_login_log.index');
+    Route::post('admin_login_log/search', 'Admin\AdminLoginLogController@search')->name('admin_login_log.search');
+
+    Route::get('admin_action_log', 'Admin\AdminActionLogController@index')->name('admin_action_log.index');
+    Route::post('admin_action_log/search', 'Admin\AdminActionLogController@search')->name('admin_action_log.search');
 });

@@ -3,8 +3,9 @@
 namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\FormRequest;
+use Illuminate\Validation\Rule;
 
-final class AdminNavFormRequest extends FormRequest
+final class AdminRoleForm extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -14,8 +15,8 @@ final class AdminNavFormRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'  => 'required',
-            'route' => 'required',
+            'name'           => 'required',
+            'allow_operator' => 'required',
         ];
     }
 
@@ -27,8 +28,7 @@ final class AdminNavFormRequest extends FormRequest
     public function messages()
     {
         return [
-            'name.required'  => '导航名称 不可空白',
-            'route.required' => '主路由 不可空白',
+            'allow_operator.required' => '运营商权限 至少选择一个',
         ];
     }
 }
