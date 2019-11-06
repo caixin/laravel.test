@@ -52,7 +52,7 @@ class AdminNavService
     public function show($id)
     {
         return [
-            'row' => $this->adminNavRepository->find($id)->toArray(),
+            'row' => $this->adminNavRepository->row($id)->toArray(),
             'nav' => $this->getDropDownList(),
         ];
     }

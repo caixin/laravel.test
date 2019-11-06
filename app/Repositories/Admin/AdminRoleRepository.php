@@ -45,6 +45,7 @@ class AdminRoleRepository extends AbstractRepository
      * @var array
      */
     public static $columnList = [
+        'id'             => '流水号',
         'name'           => '角色名称',
         'allow_operator' => '运营商权限',
         'allow_nav'      => '导航权限',

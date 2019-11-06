@@ -10,6 +10,7 @@ class AdminActionLogRepository extends AbstractRepository
     public function __construct(AdminActionLog $entity)
     {
         parent::__construct($entity);
+        $this->is_action_log = false;
     }
 
     public function _do_search()

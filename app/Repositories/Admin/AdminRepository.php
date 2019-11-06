@@ -66,6 +66,7 @@ class AdminRepository extends AbstractRepository
      * @var array
      */
     public static $columnList = [
+        'id'       => '流水号',
         'username' => '用户名称',
         'password' => '用户密码',
         'mobile'   => '手机号码',

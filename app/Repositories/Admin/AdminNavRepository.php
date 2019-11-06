@@ -74,4 +74,22 @@ class AdminNavRepository extends AbstractRepository
         $result = $this->where($where)->order(['sort', 'asc'])->result()->toArray();
         return array_column($result, null, 'id');
     }
+
+    /**
+     * For 操作日誌用
+     *
+     * @var array
+     */
+    public static $columnList = [
+        'id'     => '流水号',
+        'pid'    => '父级ID',
+        'icon'   => 'ICON',
+        'name'   => '导航名称',
+        'route'  => '主路由',
+        'route1' => '次路由1',
+        'route2' => '次路由2',
+        'path'   => '阶层路径',
+        'sort'   => '排序',
+        'status' => '状态',
+    ];
 }

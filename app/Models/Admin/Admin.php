@@ -31,6 +31,7 @@ class Admin extends Model implements
         'roleid',
         'is_agent',
         'uid',
+        'status',
     ];
 
     /**

@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use Route;
 use Models\Model;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
@@ -22,7 +23,7 @@ abstract class AbstractRepository
     protected $_group    = [];
     protected $_having   = [];
     protected $_limit    = [];
-    public $is_action_log = true;
+    protected $is_action_log = true;
 
     public function __call($methods, $arguments)
     {
@@ -39,6 +40,11 @@ abstract class AbstractRepository
     public function getEntity()
     {
         return $this->entity;
+    }
+
+    public function setActionLog($bool)
+    {
+        return $this->is_action_log = $bool;
     }
 
     public function paginate($data)
@@ -172,7 +178,15 @@ abstract class AbstractRepository
 
     public function row($id)
     {
-        return $this->entity->find($id);
+        if ($row = Redis::get($this->entity->getTable().":$id")) {
+            dd($row);
+            return $row;
+        }
+        
+        $row = $this->entity->find($id);
+
+        Redis::setex($this->entity->getTable().":$id", 1800, $row);
+        return $row;
     }
 
     public function result_one()
@@ -202,7 +216,8 @@ abstract class AbstractRepository
      */
     public function last_query()
     {
-        $lastQuery = end(DB::getQueryLog());
+        $querylog = DB::getQueryLog();
+        $lastQuery = end($querylog);
         $stringSQL = str_replace('?', '%s', $lastQuery['query']);
         return sprintf($stringSQL, ...$lastQuery['bindings']);
     }
@@ -230,6 +245,8 @@ abstract class AbstractRepository
             $row->$key = $val;
         }
         $row->save();
+        $data[$this->entity->getKeyName()] = $row->id;
+        $this->actionLog($data);
     }
 
     public function insert($data)
@@ -253,7 +270,9 @@ abstract class AbstractRepository
             //$data['platform'] = get_platform();
         }
 
-        return $this->entity->insertGetId($data);
+        $id = $this->entity->insertGetId($data);
+        $this->actionLog($data, $id > 0 ? 1 : 0);
+        return $id;
     }
 
     public function create($data)
@@ -272,21 +291,7 @@ abstract class AbstractRepository
         }
 
         $create = $this->entity->create($data);
-        //寫入操作日誌
-        if ($this->is_action_log) {
-            $message = view()->shared('title') . '(' . $this->getActionString($data) . ')';
-            DB::table('admin_action_log')->insert([
-                'adminid'     => session('id'),
-                'route'       => Route::currentRouteName(),
-                'sql_str'     => $this->last_query(),
-                'message'     => $message,
-                'ip'          => Request()->getClientIp(),
-                'status'      => $create->id > 0 ? 1 : 0,
-                'create_time' => date('Y-m-d H:i:s'),
-                'create_by'   => session('username'),
-            ]);
-        }
-
+        $this->actionLog($data, $create->id > 0 ? 1 : 0);
         return $create->id;
     }
 
@@ -321,34 +326,21 @@ abstract class AbstractRepository
             $update = $this->entity->find($id)->update($data);
         }
         //清除快取
-        //$this->cache->redis->delete($this->entity->table()."-$id");
+        Redis::del($this->entity->getTable().":$id");
 
-        //寫入操作日誌
-        if ($this->is_action_log) {
-            $message = view()->shared('title') . '(' . $this->getActionString($data) . ')';
-            DB::table('admin_action_log')->insert([
-                'adminid'     => session('id'),
-                'route'       => Route::currentRouteName(),
-                'sql_str'     => $this->last_query(),
-                'message'     => $message,
-                'ip'          => Request()->getClientIp(),
-                'status'      => $update > 0 ? 1 : 0,
-                'create_time' => date('Y-m-d H:i:s'),
-                'create_by'   => session('username'),
-            ]);
-        }
+        $this->actionLog($data, $update > 0 ? 1 : 0);
     }
 
     public function update_batch($data)
     {
         $this->entity->updateBatch($data);
         //清除快取
-        /*
         foreach ($data as $row) {
-            $this->cache->redis->delete("$this->_table_name-".$row[$key]);
+            Redis::del($this->entity->getTable().":".$row[$this->entity->getKeyName()]);
         }
 
         //寫入操作日誌
+        /*
         if ($this->is_action_log) {
             $sql_str = $this->db->last_query();
             $message = $this->title . '(' . $this->getActionString_batch($data) . ')';
@@ -370,6 +362,8 @@ abstract class AbstractRepository
         } else {
             $this->entity->find($id)->delete();
         }
+
+        $this->actionLog([$this->entity->getKeyName()=>$id]);
     }
 
     public function increment($column, $amount)
@@ -385,6 +379,30 @@ abstract class AbstractRepository
     public function truncate()
     {
         $this->entity->truncate();
+    }
+
+    /**
+     * 寫入操作日誌
+     *
+     * @param array $data 欄位資料
+     * @param integer $status 狀態
+     * @return void
+     */
+    public function actionLog($data, $status=1)
+    {
+        if ($this->is_action_log) {
+            $message = view()->shared('title') . '(' . $this->getActionString($data) . ')';
+            DB::table('admin_action_log')->insert([
+                'adminid'     => session('id'),
+                'route'       => Route::currentRouteName(),
+                'sql_str'     => $this->last_query(),
+                'message'     => $message,
+                'ip'          => Request()->getClientIp(),
+                'status'      => $status,
+                'create_time' => date('Y-m-d H:i:s'),
+                'create_by'   => session('username'),
+            ]);
+        }
     }
 
     /**
